@@ -143,15 +143,22 @@ export interface Settings {
 
 export class EventDescription {
   eventDescription: string
-  tags: string[]
+  tags: string[] = []
   googlePhotosLink?: string
   locations: string[] = []
   linkRegex = /\[([^\]]+)\]\((https?:\/\/[\w\d./?=\-#]+)\)/g;
   locationRegex = /\[([^\]]+)\]\((location|map)\)/g;
   googlePhotosRegex = /(?:https:\/\/)?photos.app.goo.gl\/\w+/g
   atRegex = /@([\w\d\/]+)/g
+  markdown: string | undefined
 
   constructor(eventDescriptionString: string) {
+    const eventDescription = eventDescriptionString.split(":")
+    if (eventDescription.length > 1) { 
+        const markdownString = eventDescription[2]
+        var md = require('markdown-it')();
+        this.markdown = md.render(markdownString);
+    }
     eventDescriptionString = eventDescriptionString.replace(this.googlePhotosRegex, (match) => {
       this.googlePhotosLink = match
       return ""
@@ -160,26 +167,21 @@ export class EventDescription {
       this.locations.push(locationString)
       return ""
     })
-    let reversed = EventDescription.reverseString(eventDescriptionString)
-    const tagSet = new Set()
-    this.tags = []
-    let match
-    let substringAt = 0
-    while ((match = /(?:^(\w+)# )/gm.exec(reversed)) !== null) {
-      match.forEach((match, groupIndex) => {
-        if (groupIndex === 1) {
-          const reversedBack = EventDescription.reverseString(match)
-          if (!tagSet.has(reversedBack)) {
+
+    if (eventDescription.length > 0) {
+        const tagSet = new Set()
+        const tagsString = eventDescription[1]?.trim() ?? ""
+        let tags = tagsString.split("@").filter(t => !!t)
+        tags.forEach(tag => {
+          if (!tagSet.has(tag)) {
             // We do it this way so we can keep the tags in order
-            tagSet.add(reversedBack)
-            this.tags.push(reversedBack)
+            tagSet.add(tag)
+            this.tags.push(tag)
           }
-          substringAt = match.length + 2
-        }
-      })
-      reversed = reversed.substring(substringAt)
+        })
     }
-    this.eventDescription = EventDescription.reverseString(reversed.trim())
+
+    this.eventDescription = eventDescription[0]
   }
 
   getInnerHtml() {

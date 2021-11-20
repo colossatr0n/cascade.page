@@ -24,7 +24,7 @@
           'bg-gray-900 shadow-lg': showingMeta,
           'cursor-pointer': hasMeta,
         }"
-        v-on="hasMeta ? { click: togglePhotos } : {}"
+        v-on="hasMeta ? { click: toggleMarkdown } : {}"
       >
         <div :class="eventBarClass" :style="eventBarStyle"></div>
         <p class="eventDate">{{ event.getDateHtml() }}</p>
@@ -78,7 +78,7 @@
         <p class="eventTitle ml-2" v-html="event.getInnerHtml()"></p>
       </div>
     </div>
-    <event-meta v-if="canShowMeta" :locations="locations" :images="images" />
+    <event-meta v-if="canShowMeta" :locations="locations" :images="images" :markdown="markdown" />
   </div>
 </template>
 
@@ -106,6 +106,9 @@ export default Vue.extend({
           `https://www.google.com/maps/embed/v1/place?key=AIzaSyCWzyvdh_bxpqGgmNTjTZ833Dta4_XzKeU&q=${location}`
       );
     },
+    markdown(): string {
+      return this.event.event.markdown;
+    },
     canShowMeta(): boolean {
       if (this.images.length > 0) {
         return this.showingMeta && this.imageStatus === "loaded";
@@ -113,10 +116,16 @@ export default Vue.extend({
       if (this.hasLocations) {
         return this.showingMeta;
       }
+      if (this.hasMarkdown) {
+        return this.showingMeta;
+      }
       return false;
     },
     hasMeta(): boolean {
-      return this.hasImages || this.hasLocations;
+      return true || this.hasImages || this.hasLocations;
+    },
+    hasMarkdown(): boolean {
+      return !!this.markdown;
     },
     hasLocations(): boolean {
       return this.event.event.locations.length > 0;
@@ -188,6 +197,9 @@ export default Vue.extend({
       if (this.imageStatus === "not loaded") {
         this.loadImages();
       }
+    },
+    toggleMarkdown() {
+      this.showingMeta = !this.showingMeta;
     },
     getWidthForRange(range: DateRange): number {
       const width = Math.max(

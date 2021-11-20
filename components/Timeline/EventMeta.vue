@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-gray-900 rounded p-2 -mx-2 inline-flex mt-1 relative shadow-lg"
+    class="bg-gray-400 rounded p-2 -mx-2 inline-flex mt-1 absolute shadow-lg"
     style="max-width: 100vw"
   >
     <div class="ml-2 mr-3"></div>
@@ -28,6 +28,10 @@
           <img :src="image" class="rounded max-w-none z-30"
         /></a>
       </template>
+
+      <template v-if="hasMarkdown">
+        <div class="prose prose-sm" v-html="markdown"></div>
+      </template>
     </div>
   </div>
 </template>
@@ -36,13 +40,16 @@
 import Vue from "vue";
 
 export default Vue.extend({
-  props: ["locations", "images"],
+  props: ["locations", "images", "markdown"],
   computed: {
     hasImages(): boolean {
       return this.images && this.images.length > 0
     },
     hasLocations(): boolean {
       return this.locations.length > 0
+    },
+    hasMarkdown(): boolean {
+      return !!this.markdown
     }
   },
 });
